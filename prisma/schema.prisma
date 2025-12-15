@@ -1,0 +1,506 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String               @id @default(uuid())
+  name                   String
+  email                  String               @unique
+  passwordHash           String
+  phone                  String               @unique
+  role                   Role                 @default(USER)
+  isEmailVerified        Boolean              @default(false)
+  isSmsVerified          Boolean              @default(false)
+  isEmailSubscribed      Boolean              @default(false)
+  gender                 Gender?
+  profileImageUrl        String?
+  dateOfBirth            DateTime?
+  lastLoginAt            DateTime?
+  firstDiscover          String?
+
+  addresses              Address[]            @relation("UserAddresses")
+  orders                 Order[]              @relation("UserOrders")
+  reviews                Review[]             @relation("UserReviews")
+  cart                   Cart?                @relation("UserCart")
+  wishlist               Wishlist?            @relation("UserWishlist")
+  userActivities         UserActivityLog[]    @relation("UserActivities")
+  recommendedProducts    RecommendedProduct[] @relation("UserRecommendedProducts")
+  blogs                  Blog[]               @relation("UserBlogs")
+  refreshTokens          RefreshToken[]       @relation("UserRefreshTokens")
+  userCoupons            CouponUser[]         @relation("UserCoupons")
+
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+model subscribedUsers {
+  id                     String               @id @default(uuid())
+  email                  String               @unique
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+}
+
+model Category {
+  id                  String                        @id @default(uuid())
+  name                String                        @unique
+  slug                String                        @unique
+  description         String?
+  imageUrl            String?
+  altText             String?
+  
+  products            Product[]                     @relation("CategoryProducts")
+  categoryCoupons     CouponApplicableCategories[]  @relation("CategoryCoupons")
+  
+  createdAt           DateTime                      @default(now())
+  updatedAt           DateTime                      @updatedAt
+}
+
+model Product {
+  id                      String             @id @default(uuid())
+  name                    String
+  slug                    String             @unique
+  description             String?
+  metalType               String
+  price                   Decimal            @db.Decimal(10, 2)
+  discountPct             Decimal?           @db.Decimal(10, 2)
+  discountTime            DateTime?
+  stock                   Int                @default(0)
+  weight                  Decimal?           @db.Decimal(10, 2)
+  size                    Decimal?
+  isActive                Boolean            @default(true)
+  category                Category           @relation("CategoryProducts", fields: [categoryId], references: [id])
+  categoryId              String
+  bannerImage             String?
+  bannerHeading           String?
+  bannerBody              String?
+  tag                     String?
+  applyDiscountToVariants Boolean?           @default(false)
+
+  images           ProductImage[]            @relation("ProductImages")
+  variants         ProductVariant[]          @relation("ProductVariants")
+  reviews          Review[]                  @relation("ProductReviews")
+  cartItems        CartItem[]                @relation("ProductOnCartItems")
+  wishlistItems    WishlistItem[]            @relation("ProductOnWishlistItems")
+  orderItems       OrderItem[]               @relation("ProductOnOrderItems")
+  userActivityLogs UserActivityLog[]         @relation("ProductOnActivityLogs")
+  recommendedProducts RecommendedProduct[]   @relation("RecommendedProducts")
+  couponProducts   CouponApplicableProduct[] @relation("ProductCoupons")
+
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+}
+
+model ProductImage {
+  id        String  @id @default(uuid())
+  product   Product @relation("ProductImages", fields: [productId], references: [id])
+  productId String
+  imageUrl  String
+  altText   String?
+}
+
+model ProductVariant {
+  id               String          @id @default(uuid())
+  product          Product         @relation("ProductVariants", fields: [productId], references: [id])
+  productId        String
+  variantName      String
+  stock            Int
+  price            Decimal         @db.Decimal(10, 2)
+  size             Decimal
+  imageUrl         String
+  altText          String?
+
+  cartItems        CartItem[]      @relation("VariantOnCartItems")
+  wishlistItems    WishlistItem[]  @relation("VariantOnWishlistItems")
+  orderItems       OrderItem[]     @relation("VariantOnOrderItems")
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  user      User       @relation("UserCart", fields: [userId], references: [id])
+  userId    String     @unique
+  
+  cartItems CartItem[] @relation("CartItems")
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id          String          @id @default(uuid())
+  cart        Cart            @relation("CartItems", fields: [cartId], references: [id])
+  cartId      String
+  product     Product         @relation("ProductOnCartItems", fields: [productId], references: [id])
+  productId   String
+  quantity    Int
+  variant     ProductVariant? @relation("VariantOnCartItems", fields: [variantId], references: [id])
+  variantId   String?
+}
+
+model Wishlist {
+  id            String         @id @default(uuid())
+  user          User           @relation("UserWishlist", fields: [userId], references: [id])
+  userId        String         @unique
+  
+  wishlistItems WishlistItem[] @relation("WishlistItems")
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id          String          @id @default(uuid())
+  wishlist    Wishlist        @relation("WishlistItems", fields: [wishlistId], references: [id])
+  wishlistId  String
+  product     Product         @relation("ProductOnWishlistItems", fields: [productId], references: [id])
+  productId   String
+  variant     ProductVariant? @relation("VariantOnWishlistItems", fields: [variantId], references: [id])
+  variantId   String?
+}
+
+model OrderCounter {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+}
+
+model InvoiceCounter {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id                  String        @id
+  user                User          @relation("UserOrders", fields: [userId], references: [id])
+  userId              String
+  totalAmount         Decimal       @db.Decimal(10, 2)
+  couponDiscount      Decimal?      @db.Decimal(10, 2)
+  deliveryCharge      Decimal       @db.Decimal(10, 2)
+  gstAmount           Decimal       @db.Decimal(10, 2)
+  additionalCharge    Decimal?      @db.Decimal(10, 2)
+  orderStatus         OrderStatus
+  paymentMethod       PaymentMethod
+  paymentStatus       PaymentStatus
+  invoiceId           String?       @unique
+  deliveryMethod      DeliveryMethod
+  trackingId          String?       @unique
+  paymentId           String?       @unique
+  shippingAddress     Address?      @relation("OrderShippingAddress", fields: [shippingAddressId], references: [id])
+  shippingAddressId   String?
+  billingAddress      Address?      @relation("OrderBillingAddress", fields: [billingAddressId], references: [id])
+  billingAddressId    String?
+  isGift              Boolean?      @default(false)
+  from                String?       
+  to                  String?
+  message             String?
+  amountRefunded      Decimal?      @db.Decimal(10, 2)
+  cancelReason        String?
+  cancelVideo         String?
+  
+  orderItems          OrderItem[]   @relation("OrderItems")
+  
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+}
+
+enum OrderStatus {
+  ORDERED
+  READY_FOR_PICKUP
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentMethod {
+  COD
+  CARD
+  UPI
+  NETBANKING
+}
+
+enum PaymentStatus {
+  PENDING
+  FAILED
+  SUCCESS
+  REFUND_REQUESTED
+  REFUNDED
+  CANCELLED
+}
+
+enum DeliveryMethod {
+  SHIPPING
+  STORE
+}
+
+model OrderItem {
+  id          String          @id @default(uuid())
+  order       Order           @relation("OrderItems", fields: [orderId], references: [id])
+  orderId     String
+  product     Product         @relation("ProductOnOrderItems", fields: [productId], references: [id])
+  productId   String
+  variant     ProductVariant? @relation("VariantOnOrderItems", fields: [variantId], references: [id])
+  variantId   String?
+  quantity    Int
+  price       Decimal        @db.Decimal(10, 2)
+}
+
+model Address {
+  id                  String   @id @default(uuid())
+  user                User     @relation("UserAddresses", fields: [userId], references: [id])
+  userId              String
+  name                String
+  phone               String
+  addressLine1        String
+  addressLine2        String?
+  city                String
+  state               String
+  country             String?
+  zipCode             String
+  
+  ordersAsShipping    Order[]  @relation("OrderShippingAddress")
+  ordersAsBilling     Order[]  @relation("OrderBillingAddress")
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model Review {
+  id             String              @id @default(uuid())
+  product        Product             @relation("ProductReviews", fields: [productId], references: [id])
+  productId      String
+  user           User                @relation("UserReviews", fields: [userId], references: [id])
+  userId         String
+  rating         Int
+  headline       String?
+  comment        String?
+  expectationMet ExpectationLevel?
+  wouldRecommend Boolean?            @default(false)
+  
+  reviewMedia    ReviewMedia[]       @relation("ReviewMedia")
+  
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+}
+
+enum ExpectationLevel { 
+  DID_NOT_MEET
+  ALMOST_MET
+  MET
+  EXCEEDED
+  GREATLY_EXCEEDED
+}
+
+model ReviewMedia {
+  id        String   @id @default(uuid()) 
+  review    Review   @relation("ReviewMedia", fields: [reviewId], references: [id]) 
+  reviewId  String 
+  mediaUrl  String
+  mediaType MediaType?
+}
+
+enum MediaType { 
+  IMAGE 
+  VIDEO 
+}
+
+model Coupon {
+  id                    String                       @id @default(uuid())
+  code                  String                       @unique
+  discountPct           Int
+  minPurchase           Decimal?                     @db.Decimal(10, 2)
+  isActive              Boolean                      @default(true)
+  usageCount            Int                          @default(0)
+  maxUsage              Int?
+  appliesToAllProducts  Boolean?                     @default(false)
+  isFirstTimeUserOnly   Boolean?                     @default(false)
+  maxUsagePerUser       Int?                         @default(1)
+  startDate             DateTime?                    @default(now())
+  endDate               DateTime?
+  
+  users                 CouponUser[]                 @relation("CouponUsers")
+  applicableProducts    CouponApplicableProduct[]    @relation("CouponApplicableProducts")
+  applicableCategories  CouponApplicableCategories[] @relation("CouponApplicableCategories")
+  
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime                     @updatedAt
+}
+
+model CouponUser {
+  id         String   @id @default(uuid())
+  coupon     Coupon   @relation("CouponUsers", fields: [couponId], references: [id])
+  couponId   String
+  usageCount Int      @default(0)
+  user       User     @relation("UserCoupons", fields: [userId], references: [id])
+  userId     String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([couponId, userId])
+}
+
+model CouponApplicableProduct {
+  id        String   @id @default(uuid())
+  coupon    Coupon   @relation("CouponApplicableProducts", fields: [couponId], references: [id])
+  couponId  String
+  product   Product  @relation("ProductCoupons", fields: [productId], references: [id])
+  productId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([couponId, productId])
+}
+
+model CouponApplicableCategories {
+  id         String   @id @default(uuid())
+  coupon     Coupon   @relation("CouponApplicableCategories", fields: [couponId], references: [id])
+  couponId   String   
+  category   Category @relation("CategoryCoupons", fields: [categoryId], references: [id])
+  categoryId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([couponId, categoryId])
+}
+
+model UserActivityLog {
+  id           String       @id @default(uuid())
+  user         User         @relation("UserActivities", fields: [userId], references: [id])
+  userId       String
+  activityType ActivityType
+  product      Product      @relation("ProductOnActivityLogs", fields: [productId], references: [id])
+  productId    String
+  
+  createdAt    DateTime     @default(now())
+}
+
+enum ActivityType {
+  VIEW
+  CLICK
+  ADD_TO_CART
+  PURCHASE
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String  
+  userId    String
+  user      User     @relation("UserRefreshTokens", fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?
+  ipAddress String?
+  isValid   Boolean  @default(true)
+  
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model RecommendedProduct {
+  id           String   @id @default(uuid())
+  user         User     @relation("UserRecommendedProducts", fields: [userId], references: [id])
+  userId       String
+  product      Product  @relation("RecommendedProducts", fields: [productId], references: [id])
+  productId    String
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Blog {
+  id           String   @id @default(uuid())
+  user         User     @relation("UserBlogs", fields: [userId], references: [id])
+  userId       String
+  title        String
+  slug         String   @unique
+  content      String
+  coverImage   String
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model DefaultHeroBannerImages {
+  id            String   @id @default(uuid())
+  bannerImage   String
+  altText       String?
+  bannerHeading String?
+  bannerBody    String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model DefaultFlashSaleImages {
+  id           String   @id @default(uuid())
+  imagesUrl1   String
+  altText1     String?
+  imagesUrl2   String
+  altText2     String?
+  imagesUrl3   String
+  altText3     String?
+  imagesUrl4   String
+  altText4     String?
+  body         String?
+  discountPct  Float?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model DefaultBannerImages {
+  id           String   @id @default(uuid())
+  imagesUrl    String
+  altText      String? 
+  body         String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model DefaultTrendingNow {
+  id           String   @id @default(uuid())
+  videosUrl    String
+  altText      String?
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model DefaultShopImages {
+  id           String   @id @default(uuid())
+  imagesUrl    String
+  altText      String?
+  heading      String?
+  body         String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String
+  message   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
