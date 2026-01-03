@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.log
+
+# Env Files
+.env
+
+# Virtual Env
+venv/
+env/
+.envrc
+
+# Jupyter
+.ipynb_checkpoints
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Database
+*.sqlite3
+
+# Pydantic Cache
+__pydantic_cache__/
+
+# Uvicorn logs
+*.pid

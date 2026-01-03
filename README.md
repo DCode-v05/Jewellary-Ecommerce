@@ -1,7 +1,7 @@
 # Jewellery Ecommerce API
 
 ## Project Description
-This project is a comprehensive RESTful API designed for a Jewellery E-commerce platform. Built with Node.js and TypeScript, it provides a robust backend solution for managing users, products, orders, and payments. The system leverages PostgreSQL for data persistence and integrates with various third-party services for a seamless e-commerce experience.
+This project is a comprehensive RESTful API designed for a Jewellery E-commerce platform. Built with a hybrid architecture using Node.js (TypeScript) for the core API and Python (FastAPI) for advanced data processing, it provides a robust backend solution. The system manages users, products, orders, and payments while leveraging a Machine Learning recommendation engine to personalize the shopping experience.
 
 [![Website](https://img.shields.io/badge/%20Website-Visit%20Now-0A66C2?style=for-the-badge&logoColor=white)](https://suvish.store/)
 
@@ -14,7 +14,9 @@ This project is a comprehensive RESTful API designed for a Jewellery E-commerce 
 - **Product Management**: valid support for categories, product variants (size, weight, metal type), and image management via AWS S3.
 - **Shopping Experience**: Full cart and wishlist functionality, product reviews, and ratings.
 - **Order Processing**: Complete order lifecycle management (Ordered -> Delivered/Cancelled), invoice generation, and GST calculation.
-- **Marketing**: Coupon management system and recommendation engine.
+- **Marketing**: Coupon management system and an advanced **Recommendation Engine**.
+  - Uses Collaborative Filtering (ALS algorithm) to analyze user behavior (views, clicks, purchases).
+  - Automatically updates personalized product suggestions for users based on their activity over the last 30 days.
 - **Integrations**:
   - **Payments**: Razorpay integration for secure transactions.
   - **Shipping**: ShipRocket integration for logistics.
@@ -38,9 +40,8 @@ The project uses **Prisma ORM** with **PostgreSQL**. The schema includes models 
 ---
 
 ## Tech Stack
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Language**: TypeScript
+- **Core API**: Node.js, Express.js, TypeScript
+- **Recommendation Service**: Python, FastAPI, Pandas, Scipy, Implicit (ALS Model)
 - **Database**: PostgreSQL
 - **ORM**: Prisma
 - **Storage**: AWS S3
@@ -93,6 +94,26 @@ npm start
 ```
 The server will start at `http://localhost:5000`. API Documentation is available at `http://localhost:5000/api-docs`.
 
+### 6. Setup Recommendation Service (Python)
+Navigate to the recommendation directory and set up the Python environment:
+```bash
+cd recommendation
+# Create a virtual environment (optional but recommended)
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+Run the service:
+```bash
+python main.py
+```
+The recommendation service runs on port `8000`. Ensure you have the necessary environment variables set in `recommendation/.env` (refer to `recommendation/.env.example`).
+
 ---
 
 ## Usage
@@ -114,6 +135,11 @@ Jewellary-Ecommerce/
 │   ├── utils/              # Helper functions
 │   ├── validators/         # Zod schemas
 │   └── prisma/             # Seed/Truncate scripts
+│
+├── recommendation/         # Python Recommendation Microservice
+│   ├── main.py             # FastAPI entry point & logic
+│   ├── requirements.txt    # Python dependencies
+│   └── .env.example        # Env example for Python service
 │
 ├── prisma/
 │   └── schema.prisma       # Database schema definition
