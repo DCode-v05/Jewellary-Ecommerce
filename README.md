@@ -1,7 +1,9 @@
-# Jewellery Ecommerce API (wymi-api)
+# Jewellery Ecommerce API
 
 ## Project Description
 This project is a comprehensive RESTful API designed for a Jewellery E-commerce platform. Built with Node.js and TypeScript, it provides a robust backend solution for managing users, products, orders, and payments. The system leverages PostgreSQL for data persistence and integrates with various third-party services for a seamless e-commerce experience.
+
+[![Website](https://img.shields.io/badge/%20Website-Visit%20Now-0A66C2?style=for-the-badge&logoColor=white)](https://suvish.store/)
 
 ---
 
