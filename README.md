@@ -1,4 +1,4 @@
-# Jewellery Ecommerce API
+# Jewellery Ecommerce API - Suvish
 
 ## Project Description
 This project is a comprehensive RESTful API designed for a Jewellery E-commerce platform. Built with a hybrid architecture using Node.js (TypeScript) for the core API and Python (FastAPI) for advanced data processing, it provides a robust backend solution. The system manages users, products, orders, and payments while leveraging a Machine Learning recommendation engine to personalize the shopping experience.
