@@ -81,8 +81,8 @@ The Prisma schema (`prisma/schema.prisma`) defines around 40 models and enums, i
 ### Installation
 
 ```bash
-git clone https://github.com/DCode-v05/Jewellary-Ecommerce.git
-cd Jewellary-Ecommerce
+git clone https://github.com/DCode-v05/Jewellery-Ecommerce.git
+cd Jewellery-Ecommerce
 npm install
 ```
 
@@ -132,7 +132,7 @@ python main.py             # serves on port 8000
 ## Project Structure
 
 ```
-Jewellary-Ecommerce/
+Jewellery-Ecommerce/
 ├── src/
 │   ├── app.ts                 # Express entry point, middleware, route mounting
 │   ├── controllers/           # 16 controllers (auth, admin, order, cart, coupon,
